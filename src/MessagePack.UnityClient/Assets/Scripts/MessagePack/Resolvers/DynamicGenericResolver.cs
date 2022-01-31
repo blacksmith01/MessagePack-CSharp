@@ -80,6 +80,7 @@ namespace MessagePack.Internal
               { typeof(IReadOnlyDictionary<,>), typeof(InterfaceReadOnlyDictionaryFormatter<,>) },
               { typeof(System.Collections.Concurrent.ConcurrentDictionary<,>), typeof(ConcurrentDictionaryFormatter<,>) },
               { typeof(Lazy<>), typeof(LazyFormatter<>) },
+              { typeof(ListEx<>), typeof(ListExFormatter<>) },
         };
 
         // Reduce IL2CPP code generate size(don't write long code in <T>)

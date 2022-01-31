@@ -131,6 +131,10 @@ namespace MessagePackCompiler.CodeAnalysis
 
         public bool IsReadable { get; }
 
+        public bool IsClass { get; }
+
+        public bool IsString { get; }
+
         public int IntKey { get; }
 
         public string StringKey { get; }
@@ -145,11 +149,13 @@ namespace MessagePackCompiler.CodeAnalysis
 
         private readonly HashSet<string> primitiveTypes = new(Generator.ShouldUseFormatterResolverHelper.PrimitiveTypes);
 
-        public MemberSerializationInfo(bool isProperty, bool isWritable, bool isReadable, int intKey, string stringKey, string name, string type, string shortTypeName, string? customFormatterTypeName)
+        public MemberSerializationInfo(bool isProperty, bool isWritable, bool isReadable, bool isClass, bool isString, int intKey, string stringKey, string name, string type, string shortTypeName, string? customFormatterTypeName)
         {
             IsProperty = isProperty;
             IsWritable = isWritable;
             IsReadable = isReadable;
+            IsClass = isClass;
+            IsString = isString;
             IntKey = intKey;
             StringKey = stringKey;
             Type = type;
@@ -188,6 +194,19 @@ namespace MessagePackCompiler.CodeAnalysis
             else
             {
                 return $"formatterResolver.GetFormatterWithVerify<{this.Type}>().Deserialize(ref reader, options)";
+            }
+        }
+
+        public string GetDeserializeMethodStringEx(string value)
+        {
+            if (this.primitiveTypes.Contains(this.Type))
+            {
+                string suffix = this.Type == "byte[]" ? "?.ToArray()" : string.Empty;
+                return $"reader.Read{this.ShortTypeName!.Replace("[]", "s")}()" + suffix;
+            }
+            else
+            {
+                return $"(formatterResolver.GetFormatterWithVerify<{this.Type}>() as IMessagePackExFormatter<{this.Type}>).DeserializeEx(ref reader, {value}, options)";
             }
         }
     }

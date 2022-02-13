@@ -14,8 +14,10 @@ using System.Threading;
 namespace MessagePack
 {
     public class ListEx<T>
-        where T : class
+        where T : class, new()
     {
+        static Func<T> DefaultAllocator => (Func<T>)(() => new T());
+
         public List<T> Data { get; set; }
         private Queue<T> _pool;
 
@@ -59,6 +61,32 @@ namespace MessagePack
                 return false;
             }
         }
+        public void AddEx(Action<T> setter)
+        {
+            if (TryPopPooled(out var item))
+            {
+                setter(item);
+            }
+            else
+            {
+                item = DefaultAllocator();
+                setter(item);
+            }
+            Data.Add(item);
+        }
+        public void AddEx(Action<T> setter, Func<T> alloctor)
+        {
+            if (TryPopPooled(out var item))
+            {
+                setter(item);
+            }
+            else
+            {
+                item = alloctor();
+                //setter(item);
+            }
+            Data.Add(item);
+        }
     }
 }
 
@@ -73,7 +101,7 @@ namespace MessagePack.Formatters
 namespace MessagePack.Formatters
 {
     public class ListExFormatter<T> : IMessagePackExFormatter<ListEx<T>>
-        where T : class
+        where T : class, new()
     {
         public void Serialize(ref MessagePackWriter writer, ListEx<T> value, MessagePackSerializerOptions options)
         {
@@ -144,7 +172,7 @@ namespace MessagePack.Formatters
                     for (int i = 0; i < len; i++)
                     {
                         reader.CancellationToken.ThrowIfCancellationRequested();
-                        if (value.TryPopPooled(out var item) && options.Resolver.GetFormatter<T>() is IMessagePackExFormatter<T> exFomatter)
+                        if (options.Resolver.GetFormatter<T>() is IMessagePackExFormatter<T> exFomatter && value.TryPopPooled(out var item))
                         {
                             exFomatter.DeserializeEx(ref reader, item, options);
                         }

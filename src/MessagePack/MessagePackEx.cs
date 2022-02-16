@@ -83,7 +83,7 @@ namespace MessagePack
             else
             {
                 item = alloctor();
-                //setter(item);
+                setter(item);
             }
             Data.Add(item);
         }

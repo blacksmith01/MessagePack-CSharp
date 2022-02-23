@@ -155,6 +155,7 @@ namespace MessagePack.Internal
 #if NET5_0_OR_GREATER
             { typeof(System.Half), HalfFormatter.Instance },
 #endif
+            { typeof(StringEx), new StringExFormatter() },
         };
 
         internal static object GetFormatter(Type t)

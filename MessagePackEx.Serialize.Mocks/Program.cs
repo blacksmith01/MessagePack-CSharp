@@ -14,18 +14,18 @@ namespace MessagePackEx.Serialize.Mocks
             var msgSerialze = new MsgLogin()
             {
                 Id = 1,
-                Name = "Lee",
+                Name = new StringEx("Lee"),
                 Params = new ListEx<LoginParam>(new LoginParam[]
                 {
                     new LoginParam()
                     {
                         Id = 1,
-                        Value = "Param1",
+                        Value = new StringEx("Param1"),
                     },
                     new LoginParam()
                     {
                         Id = 2,
-                        Value = "Param2",
+                        Value = new StringEx("Param2"),
                     },
                 }),
             };
@@ -54,14 +54,14 @@ namespace MessagePackEx.Serialize.Mocks
     public class LoginParam : IMyMsg
     {
         [Key(0)] public int Id { get; set; }
-        [Key(1)] public string Value { get; set; }
+        [Key(1)] public StringEx Value { get; set; }
     }
 
     [MessagePackObject]
     public class MsgLogin : IMyMsg
     {
         [Key(0)] public int Id { get; set; }
-        [Key(1)] public string Name { get; set; }
+        [Key(1)] public StringEx Name { get; set; }
         [Key(2)] public ListEx<LoginParam> Params { get; set; }
     }
 }

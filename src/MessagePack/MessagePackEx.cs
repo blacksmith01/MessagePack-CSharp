@@ -88,6 +88,64 @@ namespace MessagePack
             Data.Add(item);
         }
     }
+
+    public class StringEx
+    {
+        public const int DefaultCapacity = 32;
+        public static readonly StringEx Empty = new StringEx();
+
+        public List<char> Chars { get; set; }
+
+        public StringEx()
+        {
+            Chars = new List<char>(DefaultCapacity);
+        }
+        public StringEx(int capacity)
+        {
+            Chars = new List<char>(capacity);
+        }
+        public StringEx(List<char> chars)
+        {
+            Chars = new List<char>(chars);
+        }
+        public StringEx(string str)
+        {
+            Chars = new List<char>(str.ToList());
+        }
+
+        public override string ToString()
+        {
+            return new string(Chars?.ToArray());
+        }
+        public void CopyFrom(StringEx other)
+        {
+            if (Chars == null)
+            {
+                Chars = new List<char>(other.Chars);
+            }
+            else
+            {
+                Chars.Clear();
+                Chars.AddRange(other.Chars);
+            }
+        }
+        public void EnsureBufferSize(int size)
+        {
+            Chars.Capacity = size;
+        }
+        public int CharLen()
+        {
+            int len = Chars.Count;
+            for (int i = 0; i < len; i++)
+            {
+                if (Chars[i] == 0)
+                {
+                    return i;
+                }
+            }
+            return len;
+        }
+    }
 }
 
 namespace MessagePack.Formatters
@@ -192,8 +250,91 @@ namespace MessagePack.Formatters
             }
         }
     }
-}
 
+    public class StringExFormatter : IMessagePackExFormatter<StringEx>
+    {
+        public void Serialize(ref MessagePackWriter writer, StringEx value, MessagePackSerializerOptions options)
+        {
+            if (value == null)
+            {
+                writer.WriteNil();
+            }
+            else
+            {
+                IMessagePackFormatter<char> formatter = options.Resolver.GetFormatterWithVerify<char>();
+
+                var c = value.CharLen();
+                writer.WriteArrayHeader(c);
+
+                for (int i = 0; i < c; i++)
+                {
+                    writer.CancellationToken.ThrowIfCancellationRequested();
+                    formatter.Serialize(ref writer, value.Chars[i], options);
+                }
+            }
+        }
+
+        public StringEx Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        {
+            if (reader.TryReadNil())
+            {
+                return default;
+            }
+            else
+            {
+                IMessagePackFormatter<char> formatter = options.Resolver.GetFormatterWithVerify<char>();
+
+                var len = reader.ReadArrayHeader();
+                var list = new StringEx((int)len);
+                options.Security.DepthStep(ref reader);
+                try
+                {
+                    for (int i = 0; i < len; i++)
+                    {
+                        reader.CancellationToken.ThrowIfCancellationRequested();
+                        list.Chars.Add(formatter.Deserialize(ref reader, options));
+                    }
+                }
+                finally
+                {
+                    reader.Depth--;
+                }
+
+                return list;
+            }
+        }
+
+        public StringEx DeserializeEx(ref MessagePackReader reader, StringEx value, MessagePackSerializerOptions options)
+        {
+            if (reader.TryReadNil())
+            {
+                return default;
+            }
+            else
+            {
+                IMessagePackFormatter<char> formatter = options.Resolver.GetFormatterWithVerify<char>();
+
+                var len = reader.ReadArrayHeader();
+                value.Chars.Clear();
+                options.Security.DepthStep(ref reader);
+                try
+                {
+                    for (int i = 0; i < len; i++)
+                    {
+                        reader.CancellationToken.ThrowIfCancellationRequested();
+                        value.Chars.Add(formatter.Deserialize(ref reader, options));
+                    }
+                }
+                finally
+                {
+                    reader.Depth--;
+                }
+
+                return value;
+            }
+        }
+    }
+}
 
 namespace MessagePack
 {

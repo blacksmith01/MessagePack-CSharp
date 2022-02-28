@@ -117,18 +117,20 @@ namespace MessagePack
         {
             return new string(Chars?.ToArray());
         }
-        public void CopyFrom(StringEx other)
+        public void CopyFrom<T>(T other)
+            where T : IEnumerable<char>
         {
             if (Chars == null)
             {
-                Chars = new List<char>(other.Chars);
+                Chars = new List<char>(other);
             }
             else
             {
                 Chars.Clear();
-                Chars.AddRange(other.Chars);
+                Chars.AddRange(other);
             }
         }
+        public void CopyFrom(StringEx other) => CopyFrom(other.Chars);
         public void EnsureBufferSize(int size)
         {
             Chars.Capacity = size;

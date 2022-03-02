@@ -265,6 +265,7 @@ namespace MessagePack.Formatters
             {
                 IMessagePackFormatter<char> formatter = options.Resolver.GetFormatterWithVerify<char>();
 
+                writer.WriteArrayHeader(1);
                 var c = value.CharLen();
                 writer.WriteArrayHeader(c);
 
@@ -286,6 +287,7 @@ namespace MessagePack.Formatters
             {
                 IMessagePackFormatter<char> formatter = options.Resolver.GetFormatterWithVerify<char>();
 
+                reader.ReadArrayHeader();
                 var len = reader.ReadArrayHeader();
                 var list = new StringEx((int)len);
                 options.Security.DepthStep(ref reader);
@@ -316,6 +318,7 @@ namespace MessagePack.Formatters
             {
                 IMessagePackFormatter<char> formatter = options.Resolver.GetFormatterWithVerify<char>();
 
+                reader.ReadArrayHeader();
                 var len = reader.ReadArrayHeader();
                 value.Chars.Clear();
                 options.Security.DepthStep(ref reader);

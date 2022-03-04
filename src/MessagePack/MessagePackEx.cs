@@ -173,6 +173,7 @@ namespace MessagePack.Formatters
             {
                 IMessagePackFormatter<T> formatter = options.Resolver.GetFormatterWithVerify<T>();
 
+                writer.WriteArrayHeader(1);
                 var c = value.Data.Count;
                 writer.WriteArrayHeader(c);
 
@@ -194,6 +195,7 @@ namespace MessagePack.Formatters
             {
                 IMessagePackFormatter<T> formatter = options.Resolver.GetFormatterWithVerify<T>();
 
+                reader.ReadArrayHeader();
                 var len = reader.ReadArrayHeader();
                 var list = new ListEx<T>((int)len);
                 options.Security.DepthStep(ref reader);
@@ -224,6 +226,7 @@ namespace MessagePack.Formatters
             {
                 IMessagePackFormatter<T> formatter = options.Resolver.GetFormatterWithVerify<T>();
 
+                reader.ReadArrayHeader();
                 var len = reader.ReadArrayHeader();
                 value.ClearToPool();
                 options.Security.DepthStep(ref reader);

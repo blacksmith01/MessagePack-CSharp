@@ -13,7 +13,7 @@ using System.Threading;
 
 namespace MessagePack
 {
-    public class ListEx<T>
+    public sealed class ListEx<T>
         where T : class, new()
     {
         static Func<T> DefaultAllocator => (Func<T>)(() => new T());
@@ -89,7 +89,7 @@ namespace MessagePack
         }
     }
 
-    public class StringEx
+    public sealed class StringEx
     {
         public const int DefaultCapacity = 32;
         public static readonly StringEx Empty = new StringEx();

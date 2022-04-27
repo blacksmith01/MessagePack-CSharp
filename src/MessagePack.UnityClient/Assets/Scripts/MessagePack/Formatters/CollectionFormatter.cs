@@ -247,7 +247,7 @@ namespace MessagePack.Formatters
     }
 
     // List<T> is popular format, should avoid abstraction.
-    public sealed class ListFormatter<T> : IMessagePackFormatter<List<T>>
+    public sealed class ListFormatter<T> : IMessagePackExFormatter<List<T>>
     {
         public void Serialize(ref MessagePackWriter writer, List<T> value, MessagePackSerializerOptions options)
         {
@@ -297,6 +297,36 @@ namespace MessagePack.Formatters
                 }
 
                 return list;
+            }
+        }
+
+        public List<T> DeserializeEx(ref MessagePackReader reader, List<T> value, MessagePackSerializerOptions options)
+        {
+            if (reader.TryReadNil())
+            {
+                return default;
+            }
+            else
+            {
+                IMessagePackFormatter<T> formatter = options.Resolver.GetFormatterWithVerify<T>();
+
+                var len = reader.ReadArrayHeader();
+                value.Clear();
+                options.Security.DepthStep(ref reader);
+                try
+                {
+                    for (int i = 0; i < len; i++)
+                    {
+                        reader.CancellationToken.ThrowIfCancellationRequested();
+                        value.Add(formatter.Deserialize(ref reader, options));
+                    }
+                }
+                finally
+                {
+                    reader.Depth--;
+                }
+
+                return value;
             }
         }
     }

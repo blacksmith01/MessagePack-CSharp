@@ -112,6 +112,13 @@ namespace MessagePack
         {
             Chars = new List<char>(str.ToList());
         }
+        public void Clear()
+        {
+            if (Chars != null)
+            {
+                Chars.Clear();
+            }
+        }
 
         public override string ToString()
         {
